@@ -21,10 +21,13 @@ if ("serviceWorker" in navigator && !/localhost/.test(window.location.toString()
 export const queryClient = new QueryClient;
 
 export type Page = { default: ElementType, path: string, caseSensitive?: boolean };
-const pages = import.meta.globEager<Page>("./src/pages/*.tsx");
+const pageModules = import.meta.glob<Page>("./src/pages/*.tsx", { eager: true });
+const pages = Object.fromEntries(
+	Object.entries(pageModules).map(([key, module]) => [key, module.default ? { ...module, default: module.default } : module])
+);
 
 // Log SHS GAMES!!
-console.log(" _______           _______    _______  _______  _______  _______  _______ \n(  ____ \\|\\     /|(  ____ \\  (  ____ \\(  ___  )(       )(  ____ \\(  ____ \\\n| (    \\/| )   ( || (    \\/  | (    \\/| (   ) || () () || (    \\/| (    \\/\n| (_____ | (___) || (_____   | |      | (___) || || || || (__    | (_____ \n(_____  )|  ___  |(_____  )  | | ____ |  ___  || |(_)| ||  __)   (_____  )\n      ) || (   ) |      ) |  | | \\_  )| (   ) || |   | || (            ) |\n/\\____) || )   ( |/\\____) |  | (___) || )   ( || )   ( || (____/\\/\\____) |\n\\_______)|/     \\|\\_______)  (_______)|/     \\||/     \\|(_______/\\_______)");
+console.log(" _______           _______    _______  _______  _______  _______  _______ \n(  ____ \\|\\     /|(  ____ \\  (  ____ \\(  ___  )(       )(  ____ \\(  ____ \\\n| (    \\/| )   ( || (    \\/  | (    \\/| (   ) || ()   () || (    \\/| (    \\/\n| (_____ | (___) || (___     | (     | |   | || |     | || (_____ | (__    \n(_____  )|  ___  |(_____  )  | |     | |   | || |     | |(_____  )|  __)   \n      ) || (   ) |      ) |   | |     | |   | || |     | |      ) || (      \n/\\____) || )   ( |/\\____) |   | (____/| (___) || (___) || /\\____) || (____/\\\n\\_______)|/     \\|\\_______)   (_______(_______)|(_______)|(_______)(_______/", "color: #1976d4");
 console.log("%cJoin our cult at http://github.com/SHSGames/shsgames.github.io", "color: #1976d4");
 console.log("%cHi, Evan!", "font-style: italic");
 
@@ -36,12 +39,14 @@ ReactDOM.render(
 					<Toolbar/>
 					<Drawer/>
 					<Routes>
-						{ Object.values(pages).map((page, key) => <Route
-							key={ key }
-							path={ base + page.path.substring(1) }
-							caseSensitive={ page.caseSensitive || false }
-							element={ <page.default/> }/>
-						) }
+						{ Object.values(pages).map((page, key) => {
+							const typedPage = page as Page;
+							return <Route
+								key={ key }
+								path={ base + typedPage.path.substring(1) }
+								caseSensitive={ typedPage.caseSensitive || false }
+								element={ <typedPage.default/> }/>
+						}) }
 					</Routes>
 					<Footer/>
 					<PWAInstaller/>
